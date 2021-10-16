@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
 
     testsim(arg1, arg2 ); //takes command line args sleeptime and repeatfactor as integers
 
-    printf("\nProcess %d completed testsim execution\n", getpid()); while(1);
+    printf("\nProcess %d completed testsim execution\n", getpid());
 
     return 0;
 

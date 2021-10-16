@@ -50,6 +50,14 @@ int main(int argc, char *argv[]){
     //In Parent process
 
     char filestore[2048]; char *execlargv1, *execlargv2, *execlarg; int getlicense_count;
+
+    //signal handling block
+
+    signal(SIGINT, siginthandler);  //handles Ctrl+C signal inside the parent process
+
+    signal(SIGALRM, timeouthandler); //handles the timeout signal
+
+    alarm(appication_wait_timeout); //fires timeout alarm after 100 seconds defined in the config.h file
  
     if (argc == 1){     //testing if there is any command line argument
         perror("\nrunsim: Error: Missing command line argument. Provide number of licenses\nUsage -> runsim n; where n = number of licenses.");   //use of perror
@@ -92,7 +100,7 @@ int main(int argc, char *argv[]){
 
             printf("\nObtaining license before forking a child process...\n");
 
-            sleep(5);
+            sleep(3);
 
             while (1){
                 
@@ -110,14 +118,18 @@ int main(int argc, char *argv[]){
 
             execlargv2 = strtok(NULL, " ");    //using strtok() to extract the testsim argumments separated by a tab character
             
-            pid[forkcount] = fork();    //an array to store the process IDs
+            processid = fork();    //an array to store the process IDs
 
-            if (pid[forkcount] < 0){
+            if (processid > 0)
+                pid[forkcount] = processid;
+
+
+            if (processid < 0){
                 perror("\nrunsim: Error: fork() failed!\n");
                 exit(1);
             }
 
-            if (pid[forkcount] == 0){       //This means a child process was created if true
+            if (processid == 0){       //This means a child process was created if true
 
                 printf("\nThis is Child Process ID %d getting license\n", getpid()); 
 
@@ -140,16 +152,18 @@ int main(int argc, char *argv[]){
             
         forkcount++; printf("\nforkcount is %d \n", forkcount);
              
-             wait(0);
-             returnlicense(); printf("\nChild process returned a license\n");
-        
+        wait(0);
+        returnlicense(); printf("\nChild process returned a license\n");
+                     
     }   
 
     //Back In Parent process
     //returnlicense(); 
-    signal(SIGINT, siginthandler);  //handles Ctrl+C signal inside the parent process
-    signal(SIGALRM, timeouthandler); //handles the timeout signal
-    alarm(appication_wait_timeout); //fires timeout alarm after 100 seconds defined in the config.h file
+
+    /*for (count = 0; count < forkcount; count++){
+        wait(0);
+        returnlicense(); printf("\nChild process returned a license\n");
+        }*/
 
     printf("\nThis is parent process ID %d, number of child processes are = %d\n", getpid(), forkcount);
 
@@ -202,6 +216,8 @@ void siginthandler(int sig){    //function to handle Ctrl+C signal interrupt
 
     logmsg(errorstring); //logs error message before terminating parent process
 
+    printf("\nChild processes terminated. Parent process terminating itself. See logfile.log\n");
+
     kill(getpid(), SIGTERM); //parent process terminating itself
     
     exit(1);
@@ -212,7 +228,7 @@ void timeouthandler(int sig){   //this function is called if the program times o
 
     char *log_time; char errorstring[1024] = "\0";
 
-    printf("\nrunsim timeout. Aborting Child and Parent Processes..\n");
+    printf("\nrunsim: Error: In timeout handler. Aborting Child and Parent Processes..\n");
 
     for (count = 0; count < forkcount; count++)
         kill(pid[count], SIGKILL); //sending a kill signal to the child processes to forcefully terminate them after timeout
@@ -230,6 +246,8 @@ void timeouthandler(int sig){   //this function is called if the program times o
     snprintf(errorstring, sizeof(errorstring), "runsim timed out on\t%s", log_time);
 
     logmsg(errorstring); //logs error message before terminating parent process
+
+    printf("\nChild processes terminated. Parent process terminating itself. See logfile.log\n");
 
     kill(getpid(), SIGTERM); //parent process terminating itself
     

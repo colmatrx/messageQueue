@@ -1,0 +1,27 @@
+#########################   AUTHOR: IDRIS ADELEKE #######################
+                            CS 4760 PROJECT 2
+
+This program runsim is compiled with the command 'make clean'.
+This program is run in this format: ./runsim [n] < [input file]
+for example ./runsim 7 < testing.data; 7 is the number of licenses available for the concurrent testsim processes and testing.data is the input file.
+
+The program attempts to implement the Bakery algorithm to protect the shared number of licenses.
+Particularly, the functions getlicense(), returnlicense() and removelicenses() are called and as critical sections, they are protected by the Bakery Algorithm.
+
+The function initlicense() is only called once in the beginning and by the parent process. Therefore there is no need to consider it as a critical section.
+
+The function addtolicenses() is defined and declared but not called in any part of the program.
+
+The function logmsg() is called by each iteration of the child process testsim() to log completion, interruption or timeout messages to the logfile.log.
+However the challenge is I could not protect the logfile as a critical section because as each iteration sleeps for random number of times, it is difficult to have to wait for the complete several iterations of each testsim process.
+
+The consequence of this is the log messages from each process ID are logged but could be in random order. But they could still be tracked by their process ID.
+
+Finally, child processes prints out messages as they wait for, and obtain licenses to run.
+Each process announces its process id, sleep iteration and execution completion.
+The parent process waits for all child processes to finisn, then detaches from the shared memory and marks it for destruction. This is verified by the ipcs command.
+
+This program also catches the Ctrl+C signal and times out after 100 seconds. If this happens, it kills pending child processes and destroy the shared memory before terminating itself.
+
+In the end, the correctness of the program is verified by comparing the licenses after execution to the license provided at program launch.
+If they are the same, then the Bakery algorithm works and there was no race condition on the license object.

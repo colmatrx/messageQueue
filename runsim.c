@@ -30,6 +30,8 @@ void removelicenses(int n);
 
 void addtolicenses(int n);
 
+int initlogfile(void);
+
 char successstring[1024] = "\0"; char *successtime;
 
 int count, forkcount=0; int nlicense; int message_queue_id;
@@ -43,6 +45,16 @@ struct msg {
 };
 
 struct msg message; 
+
+struct msglog{
+
+    int msgtype;
+    int msgcontent;
+};
+
+struct msglog logfile;
+
+int log_queue_id;
 
 
 int main(int argc, char *argv[]){
@@ -93,6 +105,10 @@ int main(int argc, char *argv[]){
     printf("\nInitializing Message Queue with number of licenses\n");
 
     initlicense();  //parent runsim process calls this function to initialize the message queue with the number of licenses
+
+    log_queue_id = msgget(logfile_queue_key, IPC_CREAT|0766);
+
+    initlogfile(); //initializes the message queue to control access to the log file
 
     //start reading standard input here and fork based on the number of testsim lines in the input file
    
@@ -179,11 +195,21 @@ int main(int argc, char *argv[]){
 
     logmsg(successstring); //logs successful execution message before ending the parent process 
 
+    printf("\nParent process is done writing log to file\n");
+
     if ( msgctl(message_queue_id, IPC_RMID, 0) == 0)
-        printf("\nMessage Queue ID %d has been removed.\n", message_queue_id);
+        printf("\nLicense Message Queue ID %d has been removed.\n", message_queue_id);
 
     else{    
         printf("\nrunsim: Error: In Parent Process, Message Queue removal failed!\n\n");
+        exit(1);
+    }
+
+    if (msgctl(log_queue_id, IPC_RMID, 0) == 0)
+        printf("\nLogging Message Queue %d has been removed\n", log_queue_id);
+    
+    else{
+        printf("\nrunsim: Error: In Parent Process, Logging Message Queue removal failed!\n\n");
         exit(1);
     }
        
@@ -191,7 +217,7 @@ int main(int argc, char *argv[]){
 }
 
 
-//signal handler blocks
+//signal handler block
 
 void siginthandler(int sig){    //function to handle Ctrl+C signal interrupt
 
@@ -203,10 +229,18 @@ void siginthandler(int sig){    //function to handle Ctrl+C signal interrupt
         kill(pid[count], SIGKILL); //sending a kill signal to the child processes to forcefully terminate them after Ctrl+C is received
 
     if ( msgctl(message_queue_id, IPC_RMID, 0) == 0)
-        printf("\nMessage Queue ID %d has been removed.\n", message_queue_id);
+        printf("\nLicense Message Queue ID %d has been removed.\n", message_queue_id);
 
     else{    
-        printf("\nrunsim: Error: In Ctrl+C handler, Message Queue removal failed!\n");
+        printf("\nrunsim: Error: In Ctrl+C handler, License Message Queue removal failed!\n");
+        exit(1);
+    }
+
+    if (msgctl(log_queue_id, IPC_RMID, 0) == 0) //removes log fike message queue
+        printf("\nLogging Message Queue ID %d has been removed.\n", log_queue_id);
+
+    else{    
+        printf("\nrunsim: Error: In Ctrl+C handler, Logging Message Queue removal failed!\n");
         exit(1);
     }
 
@@ -234,10 +268,18 @@ void timeouthandler(int sig){   //this function is called if the program times o
         kill(pid[count], SIGKILL); //sending a kill signal to the child processes to forcefully terminate them after timeout
 
     if ( msgctl(message_queue_id, IPC_RMID, 0) == 0)
-        printf("\nMessage Queue ID %d has been removed.\n", message_queue_id);
+        printf("\nLicense Message Queue ID %d has been removed.\n", message_queue_id);
 
     else{    
-        printf("\nrunsim: Error: In timeout signal handler, Message Queue removal failed!\n");
+        printf("\nrunsim: Error: In timeout signal handler, License Message Queue removal failed!\n");
+        exit(1);
+    }
+
+    if (msgctl(log_queue_id, IPC_RMID, 0) == 0) //removes log file message queue
+        printf("\nLogging Message Queue ID %d has been removed.\n", log_queue_id);
+
+    else{    
+        printf("\nrunsim: Error: In timeout handler, Logging Message Queue removal failed!\n");
         exit(1);
     }
     
@@ -257,7 +299,6 @@ void timeouthandler(int sig){   //this function is called if the program times o
 
 int getlicense(void){       //returns 1 for license available, and 0 for no license available
 
-   // message_queue_id = msgget(message_queue_key, 0);
     int msgbyte;
 
     printf("\nInside getlicense()\n");
@@ -351,4 +392,22 @@ void addtolicenses(int n){  //this function adds n to the number of licenses. It
 
 
 }
+
+int initlogfile(void){
+
+    logfile.msgtype = 200;
+    logfile.msgcontent = 1;
+    
+    if (msgsnd(log_queue_id, &logfile, sizeof(logfile), IPC_NOWAIT) == -1){
+
+        perror("\nIn initlogfile(). logfile queue cannot be written");
+
+        exit(1);
+    }
+
+    printf("\nIn initlogfile(). Log file message queue initialization complete\n");
+    
+    return 0;
+}
+
 

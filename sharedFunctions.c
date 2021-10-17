@@ -11,17 +11,43 @@
 #include<sys/msg.h>
 #include"config.h"
 
-/*Author Idris Adeleke CS4760 Project 2 - Concurrent Linux Programming and SHared Memory*/
+/*Author Idris Adeleke CS4760 Project 3 - Concurrent Linux Programming and Message Queue*/
 //This file contains functions that are shared by both testsim and runsim
+
+struct msglog{
+
+    int msgtype;
+    int msgcontent;
+};
+
+struct msglog testsimlog;
 
 time_t  msgtime;
 
 char logstring[2048] = "\0";
 
+int logging_id;
+
 
 void testsim(int sleepTime, int repeatFactor){      //textsim() sleeps for sleepTime seconds in a loop counted by repeatFactor
                                                     //gets called by testsim application.
     int count = 0; char *logtime;
+
+    logging_id = msgget(logfile_queue_key, 0);
+
+    printf("\nIn testsim, logging id is %d\n", logging_id);
+
+    while (1){          //attempts to get access to write message to logfile
+
+        msgrcv(logging_id, &testsimlog, sizeof(testsimlog), 0, 0);
+
+        if (testsimlog.msgcontent == 1){
+
+            printf("\nChild process %d gets file write access\n", getpid());
+            break;  
+
+        }      
+    }
 
     for (count = 0; count < repeatFactor; count++){
 
@@ -37,9 +63,13 @@ void testsim(int sleepTime, int repeatFactor){      //textsim() sleeps for sleep
  
         logmsg(logstring);   
 
-    }       
+    } 
 
+    testsimlog.msgtype = 200; testsimlog.msgcontent = 1;
+    msgsnd(logging_id, &testsimlog, sizeof(testsimlog), 0);
+    printf("\nChild process %d is done writing log to file\n", getpid());
 }
+
 
 void logmsg(const char *msg){       //this function is for writing to logfile
 
@@ -68,3 +98,4 @@ char *logeventtime(void){       //thi function is for retrieving the system time
     return logtime;
 
 }
+

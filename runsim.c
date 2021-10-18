@@ -63,6 +63,8 @@ int main(int argc, char *argv[]){
 
     char filestore[2048]; char *execlargv1, *execlargv2, *execlarg; int getlicense_count;
 
+    int pid_check;
+
     //signal handling block
 
     signal(SIGINT, siginthandler);  //handles Ctrl+C signal inside the parent process
@@ -121,7 +123,7 @@ int main(int argc, char *argv[]){
             while (1){
                 
                 getlicense_count = getlicense();  //requesting a license before proceeding to fork a child process
-
+                                                  //removelicense() is called inside getlicense() to decrement the number of licenses after getting one
                 if (getlicense_count == 1)
                     break;
             }
@@ -162,16 +164,36 @@ int main(int argc, char *argv[]){
                 execl("./testsim", "./testsim", execlargv1, execlargv2, NULL); //how to use execl to execute testsim. exec will not allow execution of codes after this line when it returns
             }
 
-        returnlicense();    //returning the license after successfully forking a child process
+            returnlicense();    //returning the license after successfully forking a child process
 
-        printf ("\nParent process returned license\n");
+            printf ("\nParent process returned license\n");
             
-        forkcount++; printf("\nforkcount is %d \n", forkcount);
-             
-        wait(0);
-        returnlicense(); printf("\nChild process returned a license\n");
+            forkcount++; printf("\nforkcount is %d \n", forkcount);
+
+            for (count = 0; count < forkcount; count++){
+
+                if (waitpid(pid[count], NULL, WNOHANG) > 0);
+                returnlicense(); printf("\nChild process returned a license\n");
+            }
                      
     }   
+
+    //returnlicense();    //returning the license after successfully forking a child process
+
+    //printf ("\nParent process returned license\n");
+
+    /*for (count = 0; count < forkcount+1; count++){
+
+            pid_check = waitpid(pid[count], NULL, WNOHANG);
+
+            printf("\npid_check for process %d is %d\n", pid[count], pid_check);
+
+            if (pid_check == 0)
+                continue;
+                    
+            else
+                returnlicense();      
+    }*/
 
     //Back In Parent process
     //returnlicense(); 
@@ -305,12 +327,9 @@ int getlicense(void){       //returns 1 for license available, and 0 for no lice
 
     msgbyte = msgrcv(message_queue_id, &message, sizeof(message), 0, 0);
 
-    printf("\nInside getlicense() after msgbyte\n");
-
-
     if (msgbyte == -1){
 
-        perror("\nIn getlicense(). msgrcv call failed\n");
+        perror("\nIn getlicense(). msgrcv call failed");
 
         exit(1);
     }

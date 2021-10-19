@@ -124,6 +124,9 @@ int main(int argc, char *argv[]){
                 
                 getlicense_count = getlicense();  //requesting a license before proceeding to fork a child process
                                                   //removelicense() is called inside getlicense() to decrement the number of licenses after getting one
+                if (getlicense_count == 0)
+                    addtolicenses(0);
+
                 if (getlicense_count == 1)
                     break;
             }
@@ -155,6 +158,9 @@ int main(int argc, char *argv[]){
                 
                     getlicense_count = getlicense();  //requesting a license before proceeding to fork a child process
 
+                    if (getlicense_count == 0)
+                        addtolicenses(0);
+
                     if (getlicense_count == 1)
                         break;
                 }
@@ -172,36 +178,22 @@ int main(int argc, char *argv[]){
 
             for (count = 0; count < forkcount; count++){
 
-                if (waitpid(pid[count], NULL, WNOHANG) > 0);
-                returnlicense(); printf("\nChild process returned a license\n");
+                pid_check = waitpid(pid[count], NULL, 0);
+                printf("\npid_check of process %d is %d\n", pid[count], pid_check);
+
+                if (pid_check > 0){
+
+                    returnlicense(); 
+                    printf("\nChild process returned a license\n");
+                }
             }
+           
                      
     }   
 
-    //returnlicense();    //returning the license after successfully forking a child process
-
-    //printf ("\nParent process returned license\n");
-
-    /*for (count = 0; count < forkcount+1; count++){
-
-            pid_check = waitpid(pid[count], NULL, WNOHANG);
-
-            printf("\npid_check for process %d is %d\n", pid[count], pid_check);
-
-            if (pid_check == 0)
-                continue;
-                    
-            else
-                returnlicense();      
-    }*/
 
     //Back In Parent process
     //returnlicense(); 
-
-    /*for (count = 0; count < forkcount; count++){
-        wait(0);
-        returnlicense(); printf("\nChild process returned a license\n");
-        }*/
 
     printf("\nThis is parent process ID %d, number of child processes are = %d\n", getpid(), forkcount);
 
@@ -409,7 +401,8 @@ void removelicenses(int n){ //removes n from number of license
 
 void addtolicenses(int n){  //this function adds n to the number of licenses. It is never used in this program so it is not considered a critical section in this case
 
-
+        message.msgcontent = n;
+        msgsnd(message_queue_id, &message, sizeof(message), IPC_NOWAIT);
 }
 
 int initlogfile(void){

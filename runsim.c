@@ -16,9 +16,9 @@
 
 //function declaration and global variable block
 
-void siginthandler(int sig);
-
 void timeouthandler(int sig);
+
+void siginthandler(int sig);
 
 int getlicense(void);
 
@@ -36,7 +36,7 @@ char successstring[1024] = "\0"; char *successtime;
 
 int count, forkcount=0; int nlicense; int message_queue_id;
 
-int pid[max_number_of_processes]; int processid;
+int pid[max_number_of_processes]; int processid; int pid_check; int childcount;
 
 struct msg {
 
@@ -63,8 +63,6 @@ int main(int argc, char *argv[]){
 
     char filestore[2048]; char *execlargv1, *execlargv2, *execlarg; int getlicense_count;
 
-    int pid_check;
-
     //signal handling block
 
     signal(SIGINT, siginthandler);  //handles Ctrl+C signal inside the parent process
@@ -85,12 +83,13 @@ int main(int argc, char *argv[]){
 
     nlicense = strtol(argv[1], NULL, 10); //copies command line license argument into global variable nlicense. 
 
-    printf("\nNumber of Licenses is(are) %d\n", nlicense);    //prints out the number of licenses provided
-
-    if ((nlicense > max_number_of_processes) || (nlicense <= 0)){     //tests if number of licenses is less than or equal to zero, or is more than 20. 
-        perror("\nrunsim: Error: Minimun number of licenses allowed is 1.\nMaximum of number of licenses/processes allowed is 20.");    //use of perror
+    if ((nlicense > max_number_of_processes) || (nlicense <= 1)){     //tests if number of licenses is less than or equal to zero, or is more than 20. 
+        perror("\nrunsim: Error: Minimun number of licenses allowed is 2: 1 license for parent and 1 license available to share among the child processes");
+        perror("\nrunsim: Error: Maximum of number of licenses/processes allowed is 20.");    //use of perror
         exit(1);
     }
+
+    printf("\nNumber of Licenses is %d\n", nlicense);    //prints out the number of licenses provided
 
     message.msgtype = 100;
     message.msgcontent = nlicense;
@@ -113,25 +112,22 @@ int main(int argc, char *argv[]){
     initlogfile(); //initializes the message queue to control access to the log file
 
     //start reading standard input here and fork based on the number of testsim lines in the input file
-   
-    while (fgets(filestore, 2048, stdin) != NULL){ //reads from the stdin 1 line at a time
 
-            printf("\nObtaining license before forking a child process...\n");
+    printf("\nParent process obtaining a license before forking child processes\n");
 
-            sleep(3);
-
-            while (1){
+    while (1){
                 
                 getlicense_count = getlicense();  //requesting a license before proceeding to fork a child process
-                                                  //removelicense() is called inside getlicense() to decrement the number of licenses after getting one
-                if (getlicense_count == 0)
-                    addtolicenses(0);
-
+                                                 //removelicense() is called inside getlicense() to decrement the number of licenses after getting one
                 if (getlicense_count == 1)
                     break;
             }
 
-            printf("\nLicense obtained in Parent process %d\n", getpid());
+    printf("\nLicense successfully obtained by the parent process\n");
+   
+    while (fgets(filestore, 2048, stdin) != NULL){ //reads from the stdin 1 line at a time
+
+            sleep(5);
 
             execlarg = strtok(filestore, "  "); //using strtok() to extract the testsim argumments separated by a tab character
             
@@ -158,9 +154,6 @@ int main(int argc, char *argv[]){
                 
                     getlicense_count = getlicense();  //requesting a license before proceeding to fork a child process
 
-                    if (getlicense_count == 0)
-                        addtolicenses(0);
-
                     if (getlicense_count == 1)
                         break;
                 }
@@ -169,35 +162,38 @@ int main(int argc, char *argv[]){
 
                 execl("./testsim", "./testsim", execlargv1, execlargv2, NULL); //how to use execl to execute testsim. exec will not allow execution of codes after this line when it returns
             }
-
-            returnlicense();    //returning the license after successfully forking a child process
-
-            printf ("\nParent process returned license\n");
             
-            forkcount++; printf("\nforkcount is %d \n", forkcount);
+            forkcount++; 
+            
+            printf("\n%d child processes have been forked\n", forkcount);
 
             for (count = 0; count < forkcount; count++){
 
-                pid_check = waitpid(pid[count], NULL, 0);
-                printf("\npid_check of process %d is %d\n", pid[count], pid_check);
+                sleep(3);
+
+                pid_check = waitpid(pid[count], NULL, WNOHANG);
 
                 if (pid_check > 0){
 
-                    returnlicense(); 
-                    printf("\nChild process returned a license\n");
+                    printf("\nChild process %d returning license\n", pid[count]);
+                    returnlicense();
                 }
-            }
-           
+            }          
                      
-    }   
+    }         
 
+    printf("\nParent process %d returning license\n", getpid());
+    returnlicense();
+    printf("\nParent process %d successfully returned license\n", getpid());
+    
 
-    //Back In Parent process
-    //returnlicense(); 
+    //Back In Parent process 
 
     printf("\nThis is parent process ID %d, number of child processes are = %d\n", getpid(), forkcount);
 
     printf("\nParent has stopped waiting because Child processes are now done\n");
+
+    printf("\nAll licenses have been returned\n");
 
     msgrcv(message_queue_id, &message, sizeof(message), 0, 0);
 
@@ -220,7 +216,7 @@ int main(int argc, char *argv[]){
     }
 
     if (msgctl(log_queue_id, IPC_RMID, 0) == 0)
-        printf("\nLogging Message Queue %d has been removed\n", log_queue_id);
+        printf("\nLogging Message Queue ID %d has been removed\n", log_queue_id);
     
     else{
         printf("\nrunsim: Error: In Parent Process, Logging Message Queue removal failed!\n\n");
@@ -315,18 +311,16 @@ int getlicense(void){       //returns 1 for license available, and 0 for no lice
 
     int msgbyte;
 
-    printf("\nInside getlicense()\n");
-
     msgbyte = msgrcv(message_queue_id, &message, sizeof(message), 0, 0);
 
     if (msgbyte == -1){
 
-        perror("\nIn getlicense(). msgrcv call failed");
+        perror("\nrunsim: Error: In getlicense(). msgrcv() call failed");
 
         exit(1);
     }
 
-    printf("\nMessage content is %d \n", message.msgcontent);
+    printf("\nAvailable license is %d \n", message.msgcontent);
 
     if (message.msgcontent > 0){
 
@@ -354,16 +348,14 @@ int initlicense(void){      //this function initializes the message queue and co
 
       if (err == -1){
 
-        perror("\nIn initlicense(). Message content cannot be written");
+        perror("\nrunsim: Error: In initlicense(). Message content cannot be written");
 
         exit(1);
     }
 
-    printf("\nerr is %d\n", err);
-
     printf("\nIn initlicense(). License initialization complete\n");
 
-    printf("\n%d licenses written in queue\n", message.msgcontent);
+    printf("\n%d licenses written to queue\n", message.msgcontent);
     
     return 0;
 }
@@ -371,22 +363,32 @@ int initlicense(void){      //this function initializes the message queue and co
 
 int returnlicense(void){    //increments the number of available licenses.
                             //called by parent to return the license after child process execution
+    int msgbyte;
 
-    printf("\nIn returnlicense()\n");
+    msgbyte = msgrcv(message_queue_id, &message, sizeof(message), 0, IPC_NOWAIT);
 
-    if ((msgrcv(message_queue_id, &message, sizeof(message), 0, 0)) == -1){
+    if (msgbyte == -1){
 
-        perror("\nrunsim: Error: In returnlicense() -> msgrcv() call failed\n");
-        exit(1);
+        message.msgcontent = 1;
+
+        msgsnd(message_queue_id, &message, sizeof(message), IPC_NOWAIT);
+
+        printf("\nQueue is empty. 1 license written to queue\n");
+
+        return 0;
     }
 
-    message.msgcontent = message.msgcontent + 1;
+    if (msgbyte != -1){
 
-    msgsnd(message_queue_id, &message, sizeof(message), IPC_NOWAIT);
+        message.msgcontent = message.msgcontent + 1;
 
-    printf("\nlicense incrememnted by 1. %d licenses now wirtten back to queue", message.msgcontent);
+        msgsnd(message_queue_id, &message, sizeof(message), IPC_NOWAIT);
 
-    return 0;
+        printf("\n1 license returned. %d licenses now available.\n", message.msgcontent);
+
+        return 0;
+    }
+
 }
 
 
@@ -394,7 +396,7 @@ void removelicenses(int n){ //removes n from number of license
 
         msgsnd(message_queue_id, &message, sizeof(message), IPC_NOWAIT);
 
-        printf("\nIn removelicenses(). 1 license removed. %d licenses written back to queue", message.msgcontent);
+        printf("\nIn removelicenses(). %d license taken. %d licenses available\n", n, message.msgcontent);
 
 }
 

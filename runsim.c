@@ -11,7 +11,7 @@
 #include<sys/msg.h>
 #include "config.h"
 
-/*Author Idris Adeleke CS4760 Project 2 - Concurrent Linux Programming and SHared Memory*/
+/*Author Idris Adeleke CS4760 Project 3 - Concurrent Linux Programming and Message Queues*/
 //This is the main runsim application
 
 //function declaration and global variable block
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]){
 
     char filestore[2048]; char *execlargv1, *execlargv2, *execlarg; int getlicense_count;
 
-    //signal handling block
+    //signal handling block declaration
 
     signal(SIGINT, siginthandler);  //handles Ctrl+C signal inside the parent process
 
@@ -81,9 +81,9 @@ int main(int argc, char *argv[]){
         exit(1);
     }
 
-    nlicense = strtol(argv[1], NULL, 10); //copies command line license argument into global variable nlicense. 
+    nlicense = strtol(argv[1], NULL, 10); //copies command line license argument into global variable nlicense after converting it to an integer. 
 
-    if ((nlicense > max_number_of_processes) || (nlicense <= 1)){     //tests if number of licenses is less than or equal to zero, or is more than 20. 
+    if ((nlicense > max_number_of_processes) || (nlicense <= 1)){     //tests if number of licenses is less than or equal to 1, or is more than 20. 
         perror("\nrunsim: Error: Minimun number of licenses allowed is 2: 1 license for parent and 1 license available to share among the child processes");
         perror("\nrunsim: Error: Maximum of number of licenses/processes allowed is 20.");    //use of perror
         exit(1);
@@ -91,10 +91,10 @@ int main(int argc, char *argv[]){
 
     printf("\nNumber of Licenses is %d\n", nlicense);    //prints out the number of licenses provided
 
-    message.msgtype = 100;
-    message.msgcontent = nlicense;
+    message.msgtype = 100;  //message type chosen for license message queue is 100
+    message.msgcontent = nlicense;  //initializing message content with number of licenses
 
-    message_queue_id = msgget(message_queue_key, IPC_CREAT|0766); //creates the message queue and gets the queue id
+    message_queue_id = msgget(message_queue_key, IPC_CREAT|0766); //creates the message queue for the license object and gets the queue id
 
     if (message_queue_id == -1){
 
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]){
 
     while (1){
                 
-                getlicense_count = getlicense();  //requesting a license before proceeding to fork a child process
+                getlicense_count = getlicense();  //requesting a license before proceeding to fork the child processes
                                                  //removelicense() is called inside getlicense() to decrement the number of licenses after getting one
                 if (getlicense_count == 1)
                     break;
@@ -135,14 +135,14 @@ int main(int argc, char *argv[]){
 
             execlargv2 = strtok(NULL, " ");    //using strtok() to extract the testsim argumments separated by a tab character
             
-            processid = fork();    //an array to store the process IDs
+            processid = fork();    
 
             if (processid > 0)
-                pid[forkcount] = processid;
+                pid[forkcount] = processid;     //an array to store the child process IDs if successfully created
 
 
             if (processid < 0){
-                perror("\nrunsim: Error: fork() failed!\n");
+                perror("\nrunsim: Error: fork() failed!");
                 exit(1);
             }
 
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]){
 
                 while (1){
                 
-                    getlicense_count = getlicense();  //requesting a license before proceeding to fork a child process
+                    getlicense_count = getlicense();  //requesting a license before proceeding to call execute testsim
 
                     if (getlicense_count == 1)
                         break;
@@ -163,17 +163,17 @@ int main(int argc, char *argv[]){
                 execl("./testsim", "./testsim", execlargv1, execlargv2, NULL); //how to use execl to execute testsim. exec will not allow execution of codes after this line when it returns
             }
             
-            forkcount++; 
+            forkcount++;    //tracks the number of child processes created so far
             
-            printf("\n%d child processes have been forked\n", forkcount);
+            printf("\n%d child processes have been forked\n", forkcount);   //prints out the number of child processes
 
-            for (count = 0; count < forkcount; count++){
+            for (count = 0; count < forkcount; count++){        //this for loop tracks the number of child processes done executing so far
 
                 sleep(3);
 
                 pid_check = waitpid(pid[count], NULL, WNOHANG);
 
-                if (pid_check > 0){
+                if (pid_check > 0){     //if a child process is done, return the license
 
                     printf("\nChild process %d returning license\n", pid[count]);
                     returnlicense();
@@ -183,11 +183,13 @@ int main(int argc, char *argv[]){
     }         
 
     printf("\nParent process %d returning license\n", getpid());
+
     returnlicense();
+
     printf("\nParent process %d successfully returned license\n", getpid());
     
 
-    //Back In Parent process 
+    //Back In cleanup part of the Parent process 
 
     printf("\nThis is parent process ID %d, number of child processes are = %d\n", getpid(), forkcount);
 
@@ -195,7 +197,7 @@ int main(int argc, char *argv[]){
 
     printf("\nAll licenses have been returned\n");
 
-    msgrcv(message_queue_id, &message, sizeof(message), 0, 0);
+    msgrcv(message_queue_id, &message, sizeof(message), 0, 0);  //reads the final count of the licenses after every process is done executing.
 
     printf("\nFinal license count is %d\n", message.msgcontent);
 
@@ -227,7 +229,7 @@ int main(int argc, char *argv[]){
 }
 
 
-//signal handler block
+//signal handler definition block
 
 void siginthandler(int sig){    //function to handle Ctrl+C signal interrupt
 
@@ -246,7 +248,7 @@ void siginthandler(int sig){    //function to handle Ctrl+C signal interrupt
         exit(1);
     }
 
-    if (msgctl(log_queue_id, IPC_RMID, 0) == 0) //removes log fike message queue
+    if (msgctl(log_queue_id, IPC_RMID, 0) == 0) //removes log file message queue
         printf("\nLogging Message Queue ID %d has been removed.\n", log_queue_id);
 
     else{    
@@ -340,7 +342,7 @@ int getlicense(void){       //returns 1 for license available, and 0 for no lice
 }
 
 
-int initlicense(void){      //this function initializes the message queue and copies the number of license in there
+int initlicense(void){      //this function initializes the message queue and copies the number of license to the queue
 
     int err;
     
@@ -361,7 +363,7 @@ int initlicense(void){      //this function initializes the message queue and co
 }
 
 
-int returnlicense(void){    //increments the number of available licenses.
+int returnlicense(void){    //increments the number of available licenses by 1
                             //called by parent to return the license after child process execution
     int msgbyte;
 
@@ -392,7 +394,7 @@ int returnlicense(void){    //increments the number of available licenses.
 }
 
 
-void removelicenses(int n){ //removes n from number of license
+void removelicenses(int n){ //removes n from number of license from the license object
 
         msgsnd(message_queue_id, &message, sizeof(message), IPC_NOWAIT);
 
@@ -401,13 +403,12 @@ void removelicenses(int n){ //removes n from number of license
 }
 
 
-void addtolicenses(int n){  //this function adds n to the number of licenses. It is never used in this program so it is not considered a critical section in this case
-
+void addtolicenses(int n){  //this function adds n to the number of licenses. It is never used in this program.
         message.msgcontent = n;
         msgsnd(message_queue_id, &message, sizeof(message), IPC_NOWAIT);
 }
 
-int initlogfile(void){
+int initlogfile(void){  //this function initializes the message queue to control logfile access
 
     logfile.msgtype = 200;
     logfile.msgcontent = 1;

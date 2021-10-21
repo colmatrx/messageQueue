@@ -10,8 +10,8 @@
 #include<signal.h>
 #include<stdlib.h>
 
-/*Author Idris Adeleke CS4760 Project 2 - Concurrent Linux Programming and SHared Memory*/
-//This is the testsim application that gets called by the execl command inside runsim
+/*Author Idris Adeleke CS4760 Project 3 - Concurrent Linux Programming and Message Queues*/
+//This is the testsim application that gets called by the execl command inside runsim's child processes
 
 void testsim(int, int); //function declaration
 
@@ -19,7 +19,9 @@ int main(int argc, char *argv[]){
 
     long int arg1, arg2;
 
-    arg1 = strtol(argv[1], NULL, 10); arg2 = strtol(argv[2], NULL, 10); //using strtol() to convert the string arg argv[2] to integer
+    arg1 = strtol(argv[1], NULL, 10); 
+    
+    arg2 = strtol(argv[2], NULL, 10); //using strtol() to convert the string arg argv[2] to integer
 
     printf("\nexecuting testsim in process %d \n", getpid());
 

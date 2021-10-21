@@ -1,0 +1,336 @@
+
+executing testsim in process 4688 
+
+In testsim, logging id is 3
+
+Child process 4688 gets file write access
+
+Sleeping for 3 seconds
+
+Sleeping for 3 seconds
+
+Child process 4688 is done writing log to file
+
+Process 4688 completed testsim execution
+
+executing testsim in process 4689 
+
+In testsim, logging id is 3
+
+Child process 4689 gets file write access
+
+Sleeping for 2 seconds
+
+Sleeping for 2 seconds
+
+Sleeping for 2 seconds
+
+Child process 4689 is done writing log to file
+
+Process 4689 completed testsim execution
+
+executing testsim in process 4690 
+
+In testsim, logging id is 3
+
+Child process 4690 gets file write access
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Child process 4690 is done writing log to file
+
+Process 4690 completed testsim execution
+
+executing testsim in process 4693 
+
+In testsim, logging id is 3
+
+Child process 4693 gets file write access
+
+Sleeping for 1 seconds
+
+Sleeping for 1 seconds
+
+Sleeping for 1 seconds
+
+Child process 4693 is done writing log to file
+
+Process 4693 completed testsim execution
+
+executing testsim in process 4702 
+
+In testsim, logging id is 3
+
+Child process 4702 gets file write access
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Child process 4702 is done writing log to file
+
+Process 4702 completed testsim execution
+
+executing testsim in process 4703 
+
+In testsim, logging id is 3
+
+Child process 4703 gets file write access
+
+Sleeping for 1 seconds
+
+Sleeping for 1 seconds
+
+Child process 4703 is done writing log to file
+
+Process 4703 completed testsim execution
+
+Number of Licenses is 3
+
+Initializing Message Queue with number of licenses
+
+In initlicense(). License initialization complete
+
+3 licenses written to queue
+
+In initlogfile(). Log file message queue initialization complete
+
+Parent process obtaining a license before forking child processes
+
+Available license is 3 
+
+In removelicenses(). 1 license taken. 2 licenses available
+
+License successfully obtained by the parent process
+
+1 child processes have been forked
+
+2 child processes have been forked
+
+Child process 4688 returning license
+
+1 license returned. 1 licenses now available.
+
+3 child processes have been forked
+
+Child process 4689 returning license
+
+1 license returned. 1 licenses now available.
+
+Child process 4690 returning license
+
+1 license returned. 2 licenses now available.
+
+4 child processes have been forked
+
+Child process 4693 returning license
+
+1 license returned. 2 licenses now available.
+
+5 child processes have been forked
+
+6 child processes have been forked
+
+Child process 4702 returning license
+
+1 license returned. 1 licenses now available.
+
+Child process 4703 returning license
+
+1 license returned. 2 licenses now available.
+
+Parent process 4687 returning license
+
+1 license returned. 3 licenses now available.
+
+Parent process 4687 successfully returned license
+
+This is parent process ID 4687, number of child processes are = 6
+
+Parent has stopped waiting because Child processes are now done
+
+All licenses have been returned
+
+Final license count is 3
+
+Parent process is done writing log to file
+
+License Message Queue ID 2 has been removed.
+
+Logging Message Queue ID 3 has been removed
+
+executing testsim in process 5890 
+
+In testsim, logging id is 7
+
+Child process 5890 gets file write access
+
+Sleeping for 3 seconds
+
+Sleeping for 3 seconds
+
+Child process 5890 is done writing log to file
+
+Process 5890 completed testsim execution
+
+executing testsim in process 5892 
+
+In testsim, logging id is 7
+
+Child process 5892 gets file write access
+
+Sleeping for 2 seconds
+
+Sleeping for 2 seconds
+
+Sleeping for 2 seconds
+
+Child process 5892 is done writing log to file
+
+Process 5892 completed testsim execution
+
+executing testsim in process 5896 
+
+In testsim, logging id is 7
+
+Child process 5896 gets file write access
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Child process 5896 is done writing log to file
+
+Process 5896 completed testsim execution
+
+executing testsim in process 5927 
+
+In testsim, logging id is 7
+
+Child process 5927 gets file write access
+
+Sleeping for 1 seconds
+
+Sleeping for 1 seconds
+
+Sleeping for 1 seconds
+
+Child process 5927 is done writing log to file
+
+Process 5927 completed testsim execution
+
+executing testsim in process 5929 
+
+In testsim, logging id is 7
+
+Child process 5929 gets file write access
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Sleeping for 4 seconds
+
+Child process 5929 is done writing log to file
+
+Process 5929 completed testsim execution
+
+executing testsim in process 5932 
+
+In testsim, logging id is 7
+
+Child process 5932 gets file write access
+
+Sleeping for 1 seconds
+
+Sleeping for 1 seconds
+
+Child process 5932 is done writing log to file
+
+Process 5932 completed testsim execution
+
+Number of Licenses is 2
+
+Initializing Message Queue with number of licenses
+
+In initlicense(). License initialization complete
+
+2 licenses written to queue
+
+In initlogfile(). Log file message queue initialization complete
+
+Parent process obtaining a license before forking child processes
+
+Available license is 2 
+
+In removelicenses(). 1 license taken. 1 licenses available
+
+License successfully obtained by the parent process
+
+1 child processes have been forked
+
+2 child processes have been forked
+
+Child process 5890 returning license
+
+Queue is empty. 1 license written to queue
+
+3 child processes have been forked
+
+Child process 5892 returning license
+
+Queue is empty. 1 license written to queue
+
+4 child processes have been forked
+
+Child process 5896 returning license
+
+Queue is empty. 1 license written to queue
+
+5 child processes have been forked
+
+Child process 5927 returning license
+
+Queue is empty. 1 license written to queue
+
+6 child processes have been forked
+
+Child process 5929 returning license
+
+Queue is empty. 1 license written to queue
+
+Child process 5932 returning license
+
+1 license returned. 1 licenses now available.
+
+Parent process 5889 returning license
+
+1 license returned. 2 licenses now available.
+
+Parent process 5889 successfully returned license
+
+This is parent process ID 5889, number of child processes are = 6
+
+Parent has stopped waiting because Child processes are now done
+
+All licenses have been returned
+
+Final license count is 2
+
+Parent process is done writing log to file
+
+License Message Queue ID 6 has been removed.
+
+Logging Message Queue ID 7 has been removed

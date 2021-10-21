@@ -11,7 +11,7 @@
 #include<sys/msg.h>
 #include"config.h"
 
-/*Author Idris Adeleke CS4760 Project 3 - Concurrent Linux Programming and Message Queue*/
+/*Author Idris Adeleke CS4760 Project 3 - Concurrent Linux Programming and Message Queues*/
 //This file contains functions that are shared by both testsim and runsim
 
 struct msglog{
@@ -29,7 +29,7 @@ char logstring[2048] = "\0";
 int logging_id;
 
 
-void testsim(int sleepTime, int repeatFactor){      //textsim() sleeps for sleepTime seconds in a loop counted by repeatFactor
+void testsim(int sleepTime, int repeatFactor){      //testsim() sleeps for sleepTime seconds in a loop counted by repeatFactor
                                                     //gets called by testsim application.
     int count = 0; char *logtime;
 
@@ -65,8 +65,8 @@ void testsim(int sleepTime, int repeatFactor){      //textsim() sleeps for sleep
 
     } 
 
-    testsimlog.msgtype = 200; testsimlog.msgcontent = 1;
-    msgsnd(logging_id, &testsimlog, sizeof(testsimlog), 0);
+    testsimlog.msgtype = 200; testsimlog.msgcontent = 1; //saving 1 back to the msgcontent
+    msgsnd(logging_id, &testsimlog, sizeof(testsimlog), 0); //writing 1 back to the message queue to indicate process is done writing to the log file.
     printf("\nChild process %d is done writing log to file\n", getpid());
 }
 
